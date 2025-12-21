@@ -1,0 +1,6 @@
+crash_date,crash_time,borough,zip_code,latitude,longitude,location,on_street_name,off_street_name,cross_street_name,number_of_persons_injured,number_of_persons_killed,number_of_pedestrians_injured,number_of_pedestrians_killed,number_of_cyclist_injured,number_of_cyclist_killed,number_of_motorist_injured,number_of_motorist_killed,contributing_factor_vehicle_1,contributing_factor_vehicle_2,contributing_factor_vehicle_3,contributing_factor_vehicle_4,contributing_factor_vehicle_5,collision_id,vehicle_type_code1,vehicle_type_code2,vehicle_type_code3,vehicle_type_code4,vehicle_type_code5
+2024-01-15,08:30,BROOKLYN,11201,40.695,-73.993,"(40.695, -73.993)",FULTON ST,,S T,FALSE,0,0,0,0,0,0,0,Unspecified,,,,,12345,Sedan,,,,
+2024-07-02,21:15,MANHATTAN,10027,40.813,-73.956,"(40.813, -73.956)",Morningside Ave,,W 116 St,1,0,0,0,0,0,1,0,Driver Inattention,,Alcohol,,,,23456,SUV,,,,
+2023-12-31,23:59,QUEENS,11368,40.746,-73.816,"(40.746, -73.816)",JUNCTION BLVD,,43rd Ave,0,0,0,0,0,0,0,0,Traffic Control Disregarded,,,,34567,Bus,,,,
+2024-03-10,14:05,BROOKLYN,11201,40.688,-73.997,"(40.688, -73.997)",FULTON ST,,CLINTON ST,2,0,1,0,0,0,0,0,Driver Inattention,,Speeding,,,,45678,Truck,,,,
+2024-11-20,07:45,BRONX,10455,40.849,-73.903,"(40.849, -73.903)",BRONX BLVD,,E 170 St,0,1,0,0,0,0,0,1,Unsafe Speed,,Alcohol,,,,56789,Taxi,,,,
