@@ -1,10 +1,21 @@
-"""Simple CLI to load, filter and report on the NYC crashes CSV (2024 analysis).
+"""Simple CLI to load, filter and report on the NYC crashes CSV.
 
-Usage example:
-    python main.py path/to/nyc_collisions.csv
+Usage examples:
+    python main.py nyc                              # Use all data
+    python main.py nyc --start 2024-01-01 --end 2024-12-31  # Filter to 2024
+    python main.py path/to/nyc_collisions.csv       # Use local file
+    python main.py sample                           # Use built-in sample data
 
-The script will filter to Jan 1 2024 - Dec 31 2024, compute simple stats and write
-`report_2024.csv` and `filtered_2024.csv` in the current directory.
+Special shortcuts:
+    - "nyc" or "nyc:latest"  — Pull from NYC API, cache locally, auto-update if > 7 days old
+    - "nyc:cached"           — Use cached data only (no internet)
+    - "nyc:update"           — Force update from NYC API
+    - "sample"               — Use built-in sample
+
+Outputs are written to the data/ folder:
+    - data/report.csv             — Summary statistics
+    - data/filtered.csv           — Filtered crash records
+    - data/search_matches.csv     — Search results (if --search used)
 """
 
 from datetime import date
@@ -17,20 +28,20 @@ import crashes_dictionaries as cd
 
 def main():
     parser = argparse.ArgumentParser(description="Extract, filter and report on accidents CSV")
-    parser.add_argument("file", nargs="?", default="sample", help="Path or URL to the accidents CSV file (or 'sample')")
-    parser.add_argument("--start", default="2024-01-01", help="Start date (YYYY-MM-DD)")
-    parser.add_argument("--end", default="2024-12-31", help="End date (YYYY-MM-DD)")
-    parser.add_argument("--out-report", default="report_2024.csv", help="Path to write the report summary CSV")
-    parser.add_argument("--out-filter", default="filtered_2024.csv", help="Path to write filtered rows CSV")
+    parser.add_argument("file", nargs="?", default="nyc", help="Path, URL, or shortcut to accidents CSV file (default: 'nyc')")
+    parser.add_argument("--start", default=None, help="Start date (YYYY-MM-DD), default: no filter")
+    parser.add_argument("--end", default=None, help="End date (YYYY-MM-DD), default: no filter")
+    parser.add_argument("--out-report", default="data/report.csv", help="Path to write the report summary CSV")
+    parser.add_argument("--out-filter", default="data/filtered.csv", help="Path to write filtered rows CSV")
     parser.add_argument("--no-pandas", action="store_true", help="Force not to use pandas even if available")
     parser.add_argument("--plot-monthly", action="store_true", help="Generate monthly counts PNG")
     parser.add_argument("--plot-streets", action="store_true", help="Generate top streets PNG")
     parser.add_argument("--heatmap", action="store_true", help="Generate folium heatmap HTML")
     parser.add_argument("--search", help="Search substring for `on_street_name` and write matches to CSV")
-    parser.add_argument("--search-out", default="search_matches.csv", help="CSV path for search matches")
+    parser.add_argument("--search-out", default="data/search_matches.csv", help="CSV path for search matches")
     args = parser.parse_args()
 
-    # handle 'sample' alias
+    # handle special shortcuts
     path = args.file
     if path == "sample":
         path = "data/sample_2024.csv"
@@ -38,22 +49,40 @@ def main():
     print(f"Loading data from: {path}")
     data, summary = load_and_preview(path, preview=0, use_pandas=not args.no_pandas)
 
-    # parse date range
+    # parse date range (optional)
     from datetime import datetime
-    try:
-        start = datetime.strptime(args.start, "%Y-%m-%d").date()
-        end = datetime.strptime(args.end, "%Y-%m-%d").date()
-    except Exception:
-        raise SystemExit("Start and End must be YYYY-MM-DD")
-
-    print(f"Filtering data between {start} and {end}...")
-    filtered = filter_by_date_range(data, start, end)
+    start = None
+    end = None
+    
+    if args.start or args.end:
+        try:
+            if args.start:
+                start = datetime.strptime(args.start, "%Y-%m-%d").date()
+            if args.end:
+                end = datetime.strptime(args.end, "%Y-%m-%d").date()
+        except Exception:
+            raise SystemExit("Start and End must be YYYY-MM-DD")
+    
+    # Filter if date range provided
+    if start or end:
+        if not start:
+            start = datetime(1900, 1, 1).date()
+        if not end:
+            end = datetime(2100, 12, 31).date()
+        print(f"Filtering data between {start} and {end}...")
+        filtered = filter_by_date_range(data, start, end)
+    else:
+        print("Using all data (no date filter)")
+        filtered = data
 
     stats = compute_stats(filtered)
 
     # print short summary
     print("=== Summary ===")
-    print(f"Range: {start} to {end}")
+    if start and end:
+        print(f"Range: {start} to {end}")
+    else:
+        print("Range: All data")
     print(f"Total accidents: {stats.get('total_accidents')}")
     print(f"Persons injured: {stats.get('number_of_persons_injured')}")
     print(f"Persons killed: {stats.get('number_of_persons_killed')}")
@@ -61,12 +90,16 @@ def main():
     for k, v in (stats.get("top_streets") or {}).items():
         print(f"  {k}: {v}")
 
+    # Ensure data directory exists
+    Path("data").mkdir(parents=True, exist_ok=True)
+
     # export report CSV
     print(f"Writing report to {args.out_report}...")
     export_report_csv(stats, args.out_report)
 
     # write filtered rows to CSV using crashes_dictionaries
     out_filter = Path(args.out_filter)
+    out_filter.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing filtered rows to {out_filter}...")
     # ensure header
     cd.write_csv_header(out_filter)
@@ -84,6 +117,8 @@ def main():
         rows_list = rows
         matches = [r for r in rows_list if term.lower() in (r.get("on_street_name") or "").lower()]
         if matches:
+            search_out = Path(args.search_out)
+            search_out.parent.mkdir(parents=True, exist_ok=True)
             print(f"Writing search matches ({len(matches)}) to {args.search_out}")
             cd.write_csv_header(args.search_out)
             cd.append_rows_to_csv(args.search_out, matches)
