@@ -29,10 +29,7 @@ def _pandas_available() -> bool:
 
 
 # NYC API Configuration
-# Use the Socrata resource CSV endpoint for programmatic access
-# Use the v3 query CSV by default; resource CSV supports SoQL params
 NYC_CRASHES_URL = "https://data.cityofnewyork.us/api/v3/views/h9gi-nx95/query.csv"
-NYC_RESOURCE_CSV = "https://data.cityofnewyork.us/resource/h9gi-nx95.csv"
 CACHE_DIR = Path("data")
 CACHE_FILE = CACHE_DIR / "nyc_crashes_cached.csv"
 CACHE_META_FILE = CACHE_DIR / "nyc_crashes_meta.json"
@@ -68,7 +65,7 @@ def _download_nyc_crashes(url: str) -> str:
 		raise Exception(f"Failed to download from {url}: {e}")
 
 
-def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | None = None, end_date: str | None = None) -> tuple[str | list, dict]:
+def pull_and_cache_nyc_crashes(force_update: bool = False, year_filter=None) -> tuple[str | list, dict]:
 	"""
 	Pull NYC crashes data from the official API and cache it locally.
 	
@@ -77,19 +74,36 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 	
 	Args:
 		force_update: Force update from URL even if cache is recent
+		year_filter: Optional int or tuple (start_year, end_year) to fetch specific years via SoQL
 		
 	Returns:
 		tuple of (data, metadata) where:
 		- data is the CSV content or parsed rows
-		- metadata includes cache_timestamp, source, last_updated_from_api
+		- metadata includes cache_timestamp, source, last_updated_from_api, url, year_filter
 	"""
+	# Build URL with year filter if provided
+	url_to_use = NYC_CRASHES_URL
+	if year_filter:
+		if isinstance(year_filter, int):
+			# Single year
+			where = f"crash_date >= '{year_filter}-01-01T00:00:00' AND crash_date <= '{year_filter}-12-31T23:59:59'"
+		elif isinstance(year_filter, tuple) and len(year_filter) == 2:
+			# Year range
+			start_yr, end_yr = year_filter
+			where = f"crash_date >= '{start_yr}-01-01T00:00:00' AND crash_date <= '{end_yr}-12-31T23:59:59'"
+		else:
+			where = None
+		if where:
+			url_to_use = f"{NYC_CRASHES_URL}?$where={urllib.parse.quote(where)}&$limit=50000"
+	
 	CACHE_DIR.mkdir(parents=True, exist_ok=True)
 	
 	metadata = {
 		"cache_timestamp": None,
 		"source": "cache",
 		"last_updated_from_api": None,
-		"url": NYC_CRASHES_URL,
+		"url": url_to_use,
+		"year_filter": year_filter if year_filter else None,
 	}
 	
 	# Load existing metadata
@@ -124,40 +138,25 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 	elif is_online and not cache_exists:
 		should_update = True
 		print("No cache found, downloading from API...")
-
-	# If a date range is requested, prefer fetching from API to honor it
-	if (start_date or end_date) and is_online:
-		should_update = True
-		print("Date range requested — fetching from API to apply filter...")
 	
 	# Update from API if needed
 	if should_update:
 		try:
-			# If a date range is provided, use the Socrata resource endpoint with a SoQL $where clause
-			if start_date and end_date:
-				where = f"crash_date between '{start_date}T00:00:00' and '{end_date}T23:59:59'"
-				params = {"$where": where, "$limit": "500000"}
-				url = NYC_RESOURCE_CSV + "?" + urllib.parse.urlencode(params)
-			else:
-				# No date filter: request the resource CSV (may be large)
-				params = {"$limit": "500000"}
-				url = NYC_RESOURCE_CSV + "?" + urllib.parse.urlencode(params)
-
-			print(f"Downloading from {url}...")
-			csv_text = _download_nyc_crashes(url)
-			# Write the downloaded CSV to the cache file
+			print(f"Downloading from {url_to_use}...")
+			csv_text = _download_nyc_crashes(url_to_use)
+			# Save to cache
 			with CACHE_FILE.open("w", encoding="utf-8") as f:
 				f.write(csv_text)
 			metadata["cache_timestamp"] = datetime.now().isoformat()
 			metadata["source"] = "api"
 			metadata["last_updated_from_api"] = datetime.now().isoformat()
+			metadata["url"] = url_to_use
+			if year_filter:
+				metadata["year_filter"] = year_filter
 			# Save metadata
 			with CACHE_META_FILE.open("w") as f:
 				json.dump(metadata, f, indent=2)
 			print(f"✓ Cache updated: {CACHE_FILE}")
-			# Socrata limits responses to 50,000 rows by default; if the API returned the limit, warn the user
-			if "$limit" in url and "500000" not in url:
-				print("⚠ Note: API response may be truncated to 50,000 rows due to Socrata limits.")
 			return CACHE_FILE, metadata
 		except Exception as e:
 			print(f"⚠ Failed to update from API: {e}")
@@ -178,7 +177,7 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 		)
 
 
-def read_accidents_csv(path: str, use_pandas: Optional[bool] = None, start_date: str | None = None, end_date: str | None = None, force_update: bool = False):
+def read_accidents_csv(path: str, use_pandas: Optional[bool] = None):
 	"""Read accidents CSV and return a DataFrame when pandas is available.
 
 	If pandas is not installed or use_pandas=False, returns a list of dict rows.
@@ -191,7 +190,7 @@ def read_accidents_csv(path: str, use_pandas: Optional[bool] = None, start_date:
 	"""
 	# Handle special NYC API shortcuts
 	if path.lower() in ("nyc", "nyc:latest"):
-		cache_path, meta = pull_and_cache_nyc_crashes(force_update=force_update, start_date=start_date, end_date=end_date)
+		cache_path, meta = pull_and_cache_nyc_crashes(force_update=False)
 		path = str(cache_path)
 		print(f"[Cache Info] {meta}")
 	elif path.lower() == "nyc:cached":
@@ -200,7 +199,7 @@ def read_accidents_csv(path: str, use_pandas: Optional[bool] = None, start_date:
 		path = str(CACHE_FILE)
 		print(f"[Using Cache] {CACHE_FILE}")
 	elif path.lower() == "nyc:update":
-		cache_path, meta = pull_and_cache_nyc_crashes(force_update=True, start_date=start_date, end_date=end_date)
+		cache_path, meta = pull_and_cache_nyc_crashes(force_update=True)
 		path = str(cache_path)
 		print(f"[Cache Info] {meta}")
 	
@@ -306,22 +305,6 @@ def read_accidents_csv(path: str, use_pandas: Optional[bool] = None, start_date:
 			df["crash_datetime"] = pd.to_datetime(df["crash_date"], errors="coerce")
 	return df
 
-	# Prefer pandas
-	import pandas as pd  # type: ignore
-
-	df = pd.read_csv(path_obj, low_memory=False)
-	# combine date/time when possible
-	if "crash_date" in df.columns:
-		time_col = "crash_time" if "crash_time" in df.columns else None
-		if time_col:
-			df["crash_datetime"] = pd.to_datetime(
-				df["crash_date"].astype(str).str.strip() + " " + df[time_col].astype(str).str.strip(),
-				errors="coerce",
-			)
-		else:
-			df["crash_datetime"] = pd.to_datetime(df["crash_date"], errors="coerce")
-	return df
-
 
 def summarize(data: Any) -> Dict[str, Any]:
 	"""Return a compact summary for a DataFrame or list-of-dicts.
@@ -398,7 +381,7 @@ if __name__ == "__main__":
 
 
 # Convenience wrapper for programmatic use from other modules (e.g. `main.py`)
-def load_and_preview(path: str, preview: int = 5, use_pandas: Optional[bool] = None, start_date: str | None = None, end_date: str | None = None, force_update: bool = False):
+def load_and_preview(path: str, preview: int = 5, use_pandas: Optional[bool] = None):
 		"""Load the CSV and return a tuple (data, summary) where `summary['preview']`
 		contains up to `preview` rows for display.
 
@@ -406,7 +389,7 @@ def load_and_preview(path: str, preview: int = 5, use_pandas: Optional[bool] = N
 			falling back to the csv module.
 		- `summary` is the same structure returned by `summarize` with an added `preview` key.
 		"""
-		data = read_accidents_csv(path, use_pandas=use_pandas, start_date=start_date, end_date=end_date, force_update=force_update)
+		data = read_accidents_csv(path, use_pandas=use_pandas)
 		summary = summarize(data)
 		summary["preview"] = summary.get("head", [])[:preview]
 		return data, summary
@@ -575,4 +558,3 @@ def export_report_csv(stats: dict, outpath: str):
 
 
 __all__ = ["read_accidents_csv", "summarize", "load_and_preview", "filter_by_date_range", "compute_stats", "export_report_csv", "pull_and_cache_nyc_crashes"]
-
