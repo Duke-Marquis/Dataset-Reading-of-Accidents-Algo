@@ -30,14 +30,19 @@ def plot_monthly_counts(data: Any, out_png: str = "monthly_counts.png"):
     except Exception as exc:
         raise RuntimeError("matplotlib and pandas are required for plotting: install via pip") from exc
 
-    df = _as_df(data)
-    if "crash_datetime" not in df.columns:
-        # attempt to create it via Datapull helper-like logic
-        from Datapull import _ensure_crash_datetime
+    # Ensure crash_datetime exists and has datetime dtype using Datapull helper
+    from Datapull import _ensure_crash_datetime
 
-        rows = _ensure_crash_datetime(data)
-        df = pd.DataFrame(rows)
-    df["month"] = df["crash_datetime"].dt.to_period("M")
+    ensured = _ensure_crash_datetime(data)
+    if hasattr(ensured, "shape"):
+        df = ensured
+    else:
+        df = pd.DataFrame(ensured)
+    # Ensure 'crash_datetime' is a datetime column
+    if pd.api.types.is_datetime64_any_dtype(df['crash_datetime']):
+        df["month"] = df["crash_datetime"].dt.to_period("M")
+    else:
+        raise ValueError("The 'crash_datetime' column must be of datetime type.")
     counts = df["month"].value_counts().sort_index()
 
     plt.figure(figsize=(10, 5))
@@ -61,11 +66,7 @@ def plot_top_streets(data: Any, out_png: str = "top_streets.png", top_n: int = 1
 
     from Datapull import compute_stats
 
-    if hasattr(data, "shape"):
-        stats = compute_stats(data)
-    else:
-        # assume list[dict]
-        stats = compute_stats(data)
+    stats = compute_stats(data)
 
     top = stats.get("top_streets", {})
     names = list(top.keys())[:top_n]
