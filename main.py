@@ -21,6 +21,22 @@ Outputs are written to the data/ folder:
 from datetime import date
 import argparse
 from pathlib import Path
+import sys
+
+from pathlib import Path
+
+def _ensure_project_path():
+    here = Path(__file__).resolve().parent
+    for parent in [here] + list(here.parents):
+        if (parent / "Datapull.py").exists() or (parent / "crashes_dictionaries.py").exists():
+            if str(parent) not in sys.path:
+                sys.path.insert(0, str(parent))
+            return
+    cwd = Path.cwd()
+    if str(cwd) not in sys.path:
+        sys.path.insert(0, str(cwd))
+
+_ensure_project_path()
 
 from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
 import crashes_dictionaries as cd
@@ -36,7 +52,6 @@ def main():
     parser.add_argument("--no-pandas", action="store_true", help="Force not to use pandas even if available")
     parser.add_argument("--plot-monthly", action="store_true", help="Generate monthly counts PNG")
     parser.add_argument("--plot-streets", action="store_true", help="Generate top streets PNG")
-    parser.add_argument("--heatmap", action="store_true", help="Generate folium heatmap HTML")
     parser.add_argument("--search", help="Search substring for `on_street_name` and write matches to CSV")
     parser.add_argument("--search-out", default="data/search_matches.csv", help="CSV path for search matches")
     args = parser.parse_args()
@@ -142,13 +157,6 @@ def main():
         except Exception as e:
             print("Top streets chart generation failed:", e)
 
-    if args.heatmap:
-        try:
-            import viz as _viz
-            out = _viz.generate_folium_heatmap(filtered, out_html="heatmap.html")
-            print(f"Heatmap saved to {out}")
-        except Exception as e:
-            print("Heatmap generation failed:", e)
 
     print("Done.")
 

@@ -11,6 +11,23 @@ menu allowing the user to:
  - search by vehicle type
 """
 from datetime import date
+from pathlib import Path
+import sys
+
+def _ensure_project_path():
+    """Make project root importable when running the script from other folders."""
+    here = Path(__file__).resolve().parent
+    for parent in [here] + list(here.parents):
+        if (parent / "Datapull.py").exists() or (parent / "crashes_dictionaries.py").exists():
+            if str(parent) not in sys.path:
+                sys.path.insert(0, str(parent))
+            return
+    cwd = Path.cwd()
+    if str(cwd) not in sys.path:
+        sys.path.insert(0, str(cwd))
+
+_ensure_project_path()
+
 from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
 import crashes_dictionaries as cd
 import viz
@@ -117,7 +134,6 @@ def interactive():
         print("6) Plot top streets by borough (PNG)")
         print("7) Export report CSV")
         print("8) Export filtered rows to CSV")
-        print("9) Generate folium heatmap (HTML)")
         print("q) Quit")
         choice = input("Choice: ").strip().lower()
         if choice in ("q", "quit"):
@@ -334,13 +350,6 @@ def interactive():
             rows = filtered.to_dict(orient="records") if hasattr(filtered, "to_dict") else filtered
             cd.append_rows_to_csv(out, rows)
             print(f"Wrote {out}")
-        elif choice == "9":
-            out = input("HTML path [data/heatmap.html]: ") or "data/heatmap.html"
-            try:
-                viz.generate_folium_heatmap(filtered, out)
-                print(f"Saved {out}")
-            except Exception as e:
-                print("Heatmap failed:", e)
         else:
             print("Unknown choice")
 

@@ -82,33 +82,9 @@ def plot_top_streets(data: Any, out_png: str = "top_streets.png", top_n: int = 1
 
 
 def generate_folium_heatmap(data: Any, out_html: str = "heatmap.html"):
-    """Generate a Folium heatmap HTML file using latitude/longitude if available.
+    """Heatmap feature removed.
 
-    This requires `folium` and `folium.plugins.HeatMap`.
+    The folium-based heatmap was removed from the project. This stub exists so older code
+    that may attempt to call it gets a clear error message.
     """
-    try:
-        import folium  # type: ignore
-        from folium.plugins import HeatMap  # type: ignore
-    except Exception as exc:
-        raise RuntimeError("folium is required for heatmap generation: pip install folium") from exc
-
-    # extract lat/lon pairs
-    rows = data if isinstance(data, list) else (data.to_dict(orient="records") if hasattr(data, "to_dict") else [])
-    coords = []
-    for r in rows:
-        lat = r.get("latitude")
-        lon = r.get("longitude")
-        try:
-            latf = float(lat)
-            lonf = float(lon)
-            coords.append([latf, lonf])
-        except Exception:
-            continue
-
-    if not coords:
-        raise RuntimeError("No valid latitude/longitude found to build heatmap")
-
-    m = folium.Map(location=coords[0], zoom_start=11)
-    HeatMap(coords).add_to(m)
-    m.save(out_html)
-    return out_html
+    raise RuntimeError("Heatmap generation has been removed in this version of the toolkit.")
