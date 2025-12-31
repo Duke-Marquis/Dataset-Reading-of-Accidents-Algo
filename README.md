@@ -14,6 +14,8 @@ The main components are:
 | `main.py`          | Entry point for the CLI when the repository is executed as a script. |
 | `requirements.txt` | Python dependencies.                                                 |
 
+**Repository layout update:** The codebase has been reorganized — core modules now live under `src/accidents/` and executable scripts have been moved to the `scripts/` folder. You can run the CLI or GUI with `python scripts/main.py` or `python scripts/ui_tk.py`. The scripts add `src/` to `sys.path` automatically so you don't need to set `PYTHONPATH` manually.
+
 The dataset is cached in the `data/` folder. The first run will download the full dataset (or a date‑filtered subset) and store it as `nyc_crashes_cached.csv`.
 
 ---
