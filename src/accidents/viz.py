@@ -31,7 +31,7 @@ def plot_monthly_counts(data: Any, out_png: str = "monthly_counts.png"):
         raise RuntimeError("matplotlib and pandas are required for plotting: install via pip") from exc
 
     # Ensure crash_datetime exists and has datetime dtype using Datapull helper
-    from Datapull import _ensure_crash_datetime
+    from accidents.Datapull import _ensure_crash_datetime
 
     ensured = _ensure_crash_datetime(data)
     if hasattr(ensured, "shape"):
@@ -64,7 +64,7 @@ def plot_top_streets(data: Any, out_png: str = "top_streets.png", top_n: int = 1
     except Exception as exc:
         raise RuntimeError("matplotlib and pandas are required for plotting: install via pip") from exc
 
-    from Datapull import compute_stats
+    from accidents.Datapull import compute_stats
 
     stats = compute_stats(data)
 

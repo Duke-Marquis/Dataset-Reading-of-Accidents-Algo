@@ -26,6 +26,12 @@ def _ensure_project_path():
     here = Path(__file__).resolve().parent
     # search upward for known project files
     for parent in [here] + list(here.parents):
+        # prefer adding src to sys.path when present so package imports work
+        src_dir = parent / "src"
+        if src_dir.exists() and (src_dir / "accidents").exists():
+            if str(src_dir) not in sys.path:
+                sys.path.insert(0, str(src_dir))
+            return
         if (parent / "crashes_dictionaries.py").exists() or (parent / "Datapull.py").exists():
             if str(parent) not in sys.path:
                 sys.path.insert(0, str(parent))
@@ -37,9 +43,9 @@ def _ensure_project_path():
 
 _ensure_project_path()
 
-import crashes_dictionaries as cd
-from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
-import viz
+from accidents import crashes_dictionaries as cd
+from accidents.Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
+from accidents import viz
 
 # Optional image support
 try:

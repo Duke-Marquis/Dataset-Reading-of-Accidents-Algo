@@ -28,6 +28,12 @@ from pathlib import Path
 def _ensure_project_path():
     here = Path(__file__).resolve().parent
     for parent in [here] + list(here.parents):
+        # prefer adding src to sys.path when present so package imports work
+        src_dir = parent / "src"
+        if src_dir.exists() and (src_dir / "accidents").exists():
+            if str(src_dir) not in sys.path:
+                sys.path.insert(0, str(src_dir))
+            return
         if (parent / "Datapull.py").exists() or (parent / "crashes_dictionaries.py").exists():
             if str(parent) not in sys.path:
                 sys.path.insert(0, str(parent))
@@ -38,8 +44,8 @@ def _ensure_project_path():
 
 _ensure_project_path()
 
-from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
-import crashes_dictionaries as cd
+from accidents.Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
+from accidents import crashes_dictionaries as cd
 
 
 def main():
@@ -143,16 +149,14 @@ def main():
     # optional plotting/heatmap
     if args.plot_monthly:
         try:
-            import viz as _viz
-            out = _viz.plot_monthly_counts(filtered, out_png="monthly_counts.png")
+            from accidents import viz as _viz
             print(f"Monthly chart saved to {out}")
         except Exception as e:
             print("Monthly chart generation failed:", e)
 
     if args.plot_streets:
         try:
-            import viz as _viz
-            out = _viz.plot_top_streets(filtered, out_png="top_streets.png")
+            from accidents import viz as _viz
             print(f"Top streets chart saved to {out}")
         except Exception as e:
             print("Top streets chart generation failed:", e)

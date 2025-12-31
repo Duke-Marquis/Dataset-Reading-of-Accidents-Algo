@@ -18,6 +18,12 @@ def _ensure_project_path():
     """Make project root importable when running the script from other folders."""
     here = Path(__file__).resolve().parent
     for parent in [here] + list(here.parents):
+        # prefer adding src to sys.path when present so package imports work
+        src_dir = parent / "src"
+        if src_dir.exists() and (src_dir / "accidents").exists():
+            if str(src_dir) not in sys.path:
+                sys.path.insert(0, str(src_dir))
+            return
         if (parent / "Datapull.py").exists() or (parent / "crashes_dictionaries.py").exists():
             if str(parent) not in sys.path:
                 sys.path.insert(0, str(parent))
@@ -28,9 +34,9 @@ def _ensure_project_path():
 
 _ensure_project_path()
 
-from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
-import crashes_dictionaries as cd
-import viz
+from accidents.Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
+from accidents import crashes_dictionaries as cd
+from accidents import viz
 import statistics as stats_module
 
 
