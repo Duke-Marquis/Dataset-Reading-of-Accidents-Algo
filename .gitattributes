@@ -1,3 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-*.csv filter=lfs diff=lfs merge=lfs -text
+# Remove CSV LFS tracking for this repository (data files are intentionally not tracked)
+# *.csv filter=lfs diff=lfs merge=lfs -text
