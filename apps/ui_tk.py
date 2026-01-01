@@ -11,8 +11,18 @@ Run:
     python ui_tk.py
 """
 from __future__ import annotations
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+try:
+    import tkinter as tk
+    from tkinter import ttk, filedialog, messagebox
+    TK_AVAILABLE = True
+except Exception:
+    # tkinter wasn't importable (e.g., not installed on some Linux systems by default)
+    tk = None
+    ttk = None
+    filedialog = None
+    messagebox = None
+    TK_AVAILABLE = False
+
 import webbrowser
 from typing import Any
 import threading
@@ -642,6 +652,15 @@ class AccidentsGUI:
 
 
 def main():
+    if not TK_AVAILABLE:
+        msg = (
+            "Tkinter is not available in this Python installation.\n"
+            "On Debian/Ubuntu install via: sudo apt install python3-tk\n"
+            "On Windows or macOS, ensure your Python distribution includes Tcl/Tk (usually bundled)."
+        )
+        print(msg)
+        sys.exit(1)
+
     root = tk.Tk()
     app = AccidentsGUI(root)
     root.mainloop()

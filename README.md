@@ -15,6 +15,7 @@ The main components are:
 - `apps/` — GUI and CLI entry points (run `python ui_tk.py` or `python ui.py`) 🖥️
 - `data/` — cached CSVs and sample datasets 📂
 - `visuals/` — generated charts and images (monthly/top charts) 🖼️
+- `tkinter` (GUI) — not a pip package; usually included with Python. On Debian/Ubuntu install via `sudo apt install python3-tk`. If the GUI fails to start, ensure Tcl/Tk is available in your Python installation.
 - `docs/` — extra docs like data caching notes 📄
 
 Charts are now written to `visuals/` by default. You can override the output path when calling the plotting functions.
