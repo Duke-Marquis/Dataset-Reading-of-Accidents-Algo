@@ -311,14 +311,14 @@ def interactive():
                             print(f"\n... and {len(matches) - 10} more records")
                         print(f"{'─'*70}")
         elif choice == "5":
-            out = input("PNG path [data/monthly_counts.png]: ") or "data/monthly_counts.png"
+            out = input("PNG path [visuals/monthly_counts.png]: ") or "visuals/monthly_counts.png"
             try:
                 viz.plot_monthly_counts(filtered, out)
                 print(f"Saved {out}")
             except Exception as e:
                 print("Plotting failed:", e)
         elif choice == "6":
-            out = input("PNG path [data/top_streets.png]: ") or "data/top_streets.png"
+            out = input("PNG path [visuals/top_streets.png]: ") or "visuals/top_streets.png"
             try:
                 viz.plot_top_streets(filtered, out)
                 print(f"Saved {out}")

@@ -292,7 +292,7 @@ class AccidentsGUI:
             messagebox.showwarning("No data", "Load and filter data first")
             return
         try:
-            out = viz.plot_monthly_counts(self.filtered, out_png="monthly_counts.png")
+            out = viz.plot_monthly_counts(self.filtered, out_png="visuals/monthly_counts.png")
             self._display_image_or_open(out)
         except Exception as e:
             messagebox.showerror("Plot failed", str(e))
@@ -302,7 +302,7 @@ class AccidentsGUI:
             messagebox.showwarning("No data", "Load and filter data first")
             return
         try:
-            out = viz.plot_top_months(self.filtered, out_png="top_months.png", top_n=5)
+            out = viz.plot_top_months(self.filtered, out_png="visuals/top_months.png", top_n=5)
             self._display_image_or_open(out)
         except Exception as e:
             messagebox.showerror("Plot failed", str(e))
@@ -312,7 +312,7 @@ class AccidentsGUI:
             messagebox.showwarning("No data", "Load and filter data first")
             return
         try:
-            out = viz.plot_top_vehicles(self.filtered, out_png="top_vehicles.png", top_n=5)
+            out = viz.plot_top_vehicles(self.filtered, out_png="visuals/top_vehicles.png", top_n=5)
             self._display_image_or_open(out)
         except Exception as e:
             messagebox.showerror("Plot failed", str(e))
@@ -322,7 +322,7 @@ class AccidentsGUI:
             messagebox.showwarning("No data", "Load and filter data first")
             return
         try:
-            out = viz.plot_top_streets(self.filtered, out_png="top_streets.png")
+            out = viz.plot_top_streets(self.filtered, out_png="visuals/top_streets.png")
             self._display_image_or_open(out)
         except Exception as e:
             messagebox.showerror("Plot failed", str(e))

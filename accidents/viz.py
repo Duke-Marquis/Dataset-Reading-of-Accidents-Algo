@@ -21,7 +21,7 @@ def _as_df(data: Any):
     return data
 
 
-def plot_monthly_counts(data: Any, out_png: str = "monthly_counts.png"):
+def plot_monthly_counts(data: Any, out_png: str = "visuals/monthly_counts.png"):
     """Plot monthly counts (saves PNG)."""
     pd = None
     try:
@@ -56,7 +56,7 @@ def plot_monthly_counts(data: Any, out_png: str = "monthly_counts.png"):
     return out_png
 
 
-def plot_top_streets(data: Any, out_png: str = "top_streets.png", top_n: int = 10):
+def plot_top_streets(data: Any, out_png: str = "visuals/top_streets.png", top_n: int = 10):
     """Plot top streets bar chart using counts from compute_stats or derived from data."""
     try:
         import matplotlib.pyplot as plt  # type: ignore
@@ -81,7 +81,7 @@ def plot_top_streets(data: Any, out_png: str = "top_streets.png", top_n: int = 1
     return out_png
 
 
-def plot_top_months(data: Any, out_png: str = "top_months.png", top_n: int = 5):
+def plot_top_months(data: Any, out_png: str = "visuals/top_months.png", top_n: int = 5):
     """Plot top N months by accident count."""
     try:
         import matplotlib.pyplot as plt  # type: ignore
@@ -104,7 +104,7 @@ def plot_top_months(data: Any, out_png: str = "top_months.png", top_n: int = 5):
     return out_png
 
 
-def plot_top_vehicles(data: Any, out_png: str = "top_vehicles.png", top_n: int = 5):
+def plot_top_vehicles(data: Any, out_png: str = "visuals/top_vehicles.png", top_n: int = 5):
     """Plot top N vehicle types by occurrence across all vehicle columns."""
     try:
         import matplotlib.pyplot as plt  # type: ignore

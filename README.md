@@ -9,6 +9,15 @@ The main components are:
 | File               | Purpose                                                              |
 | ------------------ | -------------------------------------------------------------------- |
 | `accidents/datapull.py` | Handles downloading, caching, and filtering of the CSV data.         |
+
+## Project layout
+- `accidents/` — core library (data pulling, stats, visualizations) 🔧
+- `apps/` — GUI and CLI entry points (run `python ui_tk.py` or `python ui.py`) 🖥️
+- `data/` — cached CSVs and sample datasets 📂
+- `visuals/` — generated charts and images (monthly/top charts) 🖼️
+- `docs/` — extra docs like data caching notes 📄
+
+Charts are now written to `visuals/` by default. You can override the output path when calling the plotting functions.
 | `ui.py`            | Interactive CLI menu – statistics, plots, CSV export, etc.           |
 | `ui_tk.py`         | Tkinter GUI wrapper that simply calls the same logic as `ui.py`.     |
 | `main.py`          | Entry point for the CLI when the repository is executed as a script. |

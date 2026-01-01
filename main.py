@@ -146,7 +146,7 @@ def main():
     if args.plot_monthly:
         try:
             from accidents import viz as _viz
-            out = _viz.plot_monthly_counts(filtered, out_png="monthly_counts.png")
+            out = _viz.plot_monthly_counts(filtered, out_png="visuals/monthly_counts.png")
             print(f"Monthly chart saved to {out}")
         except Exception as e:
             print("Monthly chart generation failed:", e)
@@ -154,7 +154,7 @@ def main():
     if args.plot_streets:
         try:
             from accidents import viz as _viz
-            out = _viz.plot_top_streets(filtered, out_png="top_streets.png")
+            out = _viz.plot_top_streets(filtered, out_png="visuals/top_streets.png")
             print(f"Top streets chart saved to {out}")
         except Exception as e:
             print("Top streets chart generation failed:", e)
