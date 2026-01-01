@@ -8,7 +8,7 @@ The main components are:
 
 | File               | Purpose                                                              |
 | ------------------ | -------------------------------------------------------------------- |
-| `Datapull.py`      | Handles downloading, caching, and filtering of the CSV data.         |
+| `accidents/datapull.py` | Handles downloading, caching, and filtering of the CSV data.         |
 | `ui.py`            | Interactive CLI menu – statistics, plots, CSV export, etc.           |
 | `ui_tk.py`         | Tkinter GUI wrapper that simply calls the same logic as `ui.py`.     |
 | `main.py`          | Entry point for the CLI when the repository is executed as a script. |

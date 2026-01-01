@@ -48,7 +48,7 @@ python3 main.py sample
 ### Python API (`Datapull.py`)
 
 ```python
-from Datapull import load_and_preview, pull_and_cache_nyc_crashes
+from accidents.datapull import load_and_preview, pull_and_cache_nyc_crashes
 
 # Load with automatic caching
 data, summary = load_and_preview("nyc", preview=10)

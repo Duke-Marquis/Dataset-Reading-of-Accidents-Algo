@@ -70,30 +70,33 @@ def _download_nyc_crashes(url: str) -> str:
 		raise Exception(f"Failed to download from {url}: {e}")
 
 
-def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | None = None, end_date: str | None = None) -> tuple[str | list, dict]:
+def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | None = None, end_date: str | None = None, year_filter: int | tuple | None = None) -> tuple[str | list, dict]:
 	"""
 	Pull NYC crashes data from the official API and cache it locally.
 	
 	When online and data is stale (> 7 days), automatically updates cache.
 	When offline, uses cached data if available.
-	
+
 	Args:
 		force_update: Force update from URL even if cache is recent
-		
+		year_filter: Optional year (int) or (start_year, end_year) tuple to restrict API results by year(s)
+		start_date/end_date: Optional ISO date strings to fetch by exact date range (takes precedence over year_filter)
+	
 	Returns:
 		tuple of (data, metadata) where:
 		- data is the CSV content or parsed rows
-		- metadata includes cache_timestamp, source, last_updated_from_api
+		- metadata includes cache_timestamp, source, last_updated_from_api, url, and year_filter
 	"""
 	CACHE_DIR.mkdir(parents=True, exist_ok=True)
-	
+
 	metadata = {
 		"cache_timestamp": None,
 		"source": "cache",
 		"last_updated_from_api": None,
 		"url": NYC_CRASHES_URL,
+		"year_filter": year_filter if year_filter else None,
 	}
-	
+
 	# Load existing metadata
 	if CACHE_META_FILE.exists():
 		try:
@@ -101,12 +104,12 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 				metadata.update(json.load(f))
 		except Exception:
 			pass
-	
+
 	is_online = _is_online()
 	cache_exists = CACHE_FILE.exists()
-	
+
 	print(f"[NYC Crashes Data] Online: {is_online}, Cache exists: {cache_exists}")
-	
+
 	# Determine if we should update from API
 	should_update = False
 	if force_update and is_online:
@@ -131,7 +134,12 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 	if (start_date or end_date) and is_online:
 		should_update = True
 		print("Date range requested — fetching from API to apply filter...")
-	
+
+	# If a year_filter is provided (and no explicit start/end), prefer fetching by year range when online
+	if (year_filter is not None) and not (start_date or end_date) and is_online:
+		should_update = True
+		print("Year filter requested — fetching from API to apply year filter...")
+
 	# Update from API if needed
 	if should_update:
 		try:
@@ -140,6 +148,18 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 				where = f"crash_date between '{start_date}T00:00:00' and '{end_date}T23:59:59'"
 				params = {"$where": where, "$limit": "500000"}
 				url = NYC_RESOURCE_CSV + "?" + urllib.parse.urlencode(params)
+			elif year_filter is not None:
+				# year_filter can be an int or (start_year, end_year)
+				if isinstance(year_filter, int):
+					where = f"crash_date between '{year_filter}-01-01T00:00:00' and '{year_filter}-12-31T23:59:59'"
+				elif isinstance(year_filter, tuple) and len(year_filter) == 2:
+					start_yr, end_yr = year_filter
+					where = f"crash_date between '{start_yr}-01-01T00:00:00' and '{end_yr}-12-31T23:59:59'"
+				else:
+					where = None
+				if where:
+					params = {"$where": where, "$limit": "500000"}
+					url = NYC_RESOURCE_CSV + "?" + urllib.parse.urlencode(params)
 			else:
 				# No date filter: request the resource CSV (may be large)
 				params = {"$limit": "500000"}
@@ -153,6 +173,7 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 			metadata["cache_timestamp"] = datetime.now().isoformat()
 			metadata["source"] = "api"
 			metadata["last_updated_from_api"] = datetime.now().isoformat()
+			metadata["url"] = url
 			# Save metadata
 			with CACHE_META_FILE.open("w") as f:
 				json.dump(metadata, f, indent=2)
@@ -167,7 +188,6 @@ def pull_and_cache_nyc_crashes(force_update: bool = False, start_date: str | Non
 				print("Using cached data instead...")
 			else:
 				raise
-	
 	# Use cached data
 	if cache_exists:
 		metadata["source"] = "cache"
@@ -505,9 +525,16 @@ def compute_stats(data: Any) -> dict:
 	- total accidents
 	- total injured and killed counts
 	- top streets by number of accidents (on_street_name)
-	- month with greatest number of accidents
+	- top months and top vehicles
 	"""
 	stats = {}
+	vehicle_cols = [
+		"vehicle_type_code1",
+		"vehicle_type_code2",
+		"vehicle_type_code3",
+		"vehicle_type_code4",
+		"vehicle_type_code5",
+	]
 	if _pandas_available() and hasattr(data, "shape"):
 		import pandas as pd  # type: ignore
 		df = _ensure_crash_datetime(data)
@@ -523,11 +550,23 @@ def compute_stats(data: Any) -> dict:
 			stats["top_streets"] = df["on_street_name"].value_counts(dropna=True).head(10).to_dict()
 		else:
 			stats["top_streets"] = {}
-		# top month
+		# top months (limit to top 5)
 		if "crash_datetime" in df.columns:
 			df = df.copy()
 			df["_month"] = df["crash_datetime"].dt.to_period("M")
-			stats["top_months"] = df["_month"].value_counts().head(6).to_dict()
+			stats["top_months"] = df["_month"].value_counts().head(5).to_dict()
+		else:
+			stats["top_months"] = {}
+		# top vehicles (aggregate across vehicle columns)
+		if any(c in df.columns for c in vehicle_cols):
+			vals = []
+			for c in vehicle_cols:
+				if c in df.columns:
+					vals.extend(df[c].dropna().astype(str).tolist())
+			stacked = pd.Series(vals)
+			stats["top_vehicles"] = stacked.value_counts().head(5).to_dict()
+		else:
+			stats["top_vehicles"] = {}
 	else:
 		rows = data if isinstance(data, list) else []
 		stats["total_accidents"] = len(rows)
@@ -535,7 +574,9 @@ def compute_stats(data: Any) -> dict:
 		killed = 0
 		street_counts: Dict[str, int] = {}
 		month_counts: Dict[str, int] = {}
+		vehicle_counts: Dict[str, int] = {}
 		for r in rows:
+			# numeric sums
 			try:
 				inj += int(r.get("number_of_persons_injured") or 0)
 			except Exception:
@@ -544,17 +585,25 @@ def compute_stats(data: Any) -> dict:
 				killed += int(r.get("number_of_persons_killed") or 0)
 			except Exception:
 				pass
+			# street
 			sn = r.get("on_street_name") or ""
 			if sn:
 				street_counts[sn] = street_counts.get(sn, 0) + 1
+			# month
 			dt = r.get("crash_datetime")
 			if isinstance(dt, datetime):
 				m = dt.strftime("%Y-%m")
 				month_counts[m] = month_counts.get(m, 0) + 1
+			# vehicles
+			for c in vehicle_cols:
+				v = (r.get(c) or "")
+				if v:
+					vehicle_counts[v] = vehicle_counts.get(v, 0) + 1
 		stats["number_of_persons_injured"] = inj
 		stats["number_of_persons_killed"] = killed
 		stats["top_streets"] = dict(sorted(street_counts.items(), key=lambda kv: kv[1], reverse=True)[:10])
-		stats["top_months"] = dict(sorted(month_counts.items(), key=lambda kv: kv[1], reverse=True)[:6])
+		stats["top_months"] = dict(sorted(month_counts.items(), key=lambda kv: kv[1], reverse=True)[:5])
+		stats["top_vehicles"] = dict(sorted(vehicle_counts.items(), key=lambda kv: kv[1], reverse=True)[:5])
 	return stats
 
 

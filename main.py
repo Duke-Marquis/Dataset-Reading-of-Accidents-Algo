@@ -40,7 +40,7 @@ def _ensure_project_path():
 
 _ensure_project_path()
 
-from Datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
+from accidents.datapull import load_and_preview, filter_by_date_range, compute_stats, export_report_csv
 import crashes_dictionaries as cd
 
 
@@ -145,7 +145,7 @@ def main():
     # optional plotting/heatmap
     if args.plot_monthly:
         try:
-            import viz as _viz
+            from accidents import viz as _viz
             out = _viz.plot_monthly_counts(filtered, out_png="monthly_counts.png")
             print(f"Monthly chart saved to {out}")
         except Exception as e:
@@ -153,7 +153,7 @@ def main():
 
     if args.plot_streets:
         try:
-            import viz as _viz
+            from accidents import viz as _viz
             out = _viz.plot_top_streets(filtered, out_png="top_streets.png")
             print(f"Top streets chart saved to {out}")
         except Exception as e:
