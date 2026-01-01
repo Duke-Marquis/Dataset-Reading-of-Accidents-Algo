@@ -1,10 +1,19 @@
 pandas==2.2.2
 matplotlib==3.9.0
 folium==0.16.0
-pillow==11.0.0
+Pillow==11.0.0
 numpy==1.26.4
 requests==2.31.0
 python-dateutil==2.8.2
 tzdata==2024.1
-# Optional / dev
-# pytest  # Not used; tests run with unittest
+
+# Development & testing tools (optional)
+black==24.10.0      # code formatter
+flake8==6.1.0       # linter
+isort==5.13.0       # import sorting
+pytest==8.4.3       # tests (optional)
+mypy==1.8.0         # static type checking
+
+# Notes:
+# - Install dev tools with: pip install -r requirements.txt
+# - Or use a separate dev-requirements file if you prefer to keep runtime deps minimal
