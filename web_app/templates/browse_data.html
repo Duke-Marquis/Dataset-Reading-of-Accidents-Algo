@@ -1,0 +1,105 @@
+{% extends "base.html" %} {% block title %}Browse Data - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="section">
+  <h1>Browse All Records</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Search and explore {{ "{:,}".format(record_count) }} accident records
+  </p>
+
+  {% if records %}
+  <div class="table-container">
+    <!-- Search Bar -->
+    <div style="padding: 1.5rem 1.5rem 1rem">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by date, borough, street, vehicle type..."
+        style="
+          width: 100%;
+          padding: 14px;
+          font-size: 14px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-family: Inter, sans-serif;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        "
+      />
+      <p
+        id="resultCount"
+        style="margin-top: 8px; color: var(--muted); font-size: 13px"
+      >
+        Showing {{ "{:,}".format(records|length) }} records
+      </p>
+    </div>
+
+    <table id="recordsTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Borough</th>
+          <th>Street</th>
+          <th>Cross Street</th>
+          <th>Injured</th>
+          <th>Killed</th>
+          <th>Vehicle 1</th>
+          <th>Vehicle 2</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+        <tr>
+          <td>{{ record.get('crash_date', '') }}</td>
+          <td>{{ record.get('borough', '') }}</td>
+          <td>{{ record.get('on_street_name', '') }}</td>
+          <td>{{ record.get('cross_street_name', '') }}</td>
+          <td>{{ record.get('number_of_persons_injured', '0') }}</td>
+          <td>{{ record.get('number_of_persons_killed', '0') }}</td>
+          <td>{{ record.get('vehicle_type_code1', '') }}</td>
+          <td>{{ record.get('vehicle_type_code2', '') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Search functionality with result count (guarded on DOM ready)
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      const table = document.getElementById('recordsTable');
+      const resultCount = document.getElementById('resultCount');
+      if (!searchInput || !table || !resultCount) return;
+      const rows = table.querySelectorAll('tbody tr');
+      const totalRecords = {{ records|length }};
+
+      const runFilter = () => {
+        const searchValue = searchInput.value.toLowerCase();
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          const text = row.textContent.toLowerCase();
+          const match = text.includes(searchValue);
+          row.style.display = match ? '' : 'none';
+          if (match) visibleCount++;
+        }
+
+        if (searchValue === '') {
+          resultCount.textContent = `Showing ${totalRecords.toLocaleString()} records`;
+        } else {
+          resultCount.textContent = `Found ${visibleCount.toLocaleString()} of ${totalRecords.toLocaleString()} records`;
+        }
+      };
+
+      searchInput.addEventListener('input', runFilter);
+    });
+  </script>
+  {% else %}
+  <p>No records to display.</p>
+  {% endif %}
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+  </div>
+</div>
+{% endblock %}

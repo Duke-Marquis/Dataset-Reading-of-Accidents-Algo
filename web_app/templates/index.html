@@ -39,6 +39,12 @@ endblock %} {% block content %}
       <p>Brief and detailed statistics about accidents</p>
     </a>
 
+    <a href="{{ url_for('browse_data') }}" class="action-card">
+      <div class="action-icon">🔎</div>
+      <h3>Browse Records</h3>
+      <p>Search and explore all accident records</p>
+    </a>
+
     <a href="{{ url_for('search_vehicle') }}" class="action-card">
       <div class="action-icon">🚙</div>
       <h3>Search by Vehicle</h3>

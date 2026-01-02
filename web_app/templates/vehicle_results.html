@@ -30,33 +30,112 @@ Analysis{% endblock %} {% block content %}
     </div>
   </div>
 
-  {% if sample_records %}
   <div class="table-container">
-    <h2 style="padding: 1.5rem 1.5rem 0">Sample Records (First 50)</h2>
-    <table>
+    <h2 style="padding: 1.5rem 1.5rem 0.5rem">
+      Records for {{ vehicle_type }}
+      <span
+        id="countText"
+        style="color: var(--muted); font-size: 14px; margin-left: 8px"
+      ></span>
+    </h2>
+
+    <!-- Search Bar -->
+    <div style="padding: 0 1.5rem 1rem">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search records (street, borough, vehicle, etc.)"
+        style="
+          width: 100%;
+          padding: 12px;
+          font-size: 14px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          font-family: Inter, sans-serif;
+        "
+      />
+    </div>
+
+    <table id="recordsTable">
       <thead>
         <tr>
           <th>Date</th>
           <th>Borough</th>
           <th>Street</th>
+          <th>Cross Street</th>
           <th>Injured</th>
           <th>Killed</th>
+          <th>Vehicle 1</th>
+          <th>Vehicle 2</th>
         </tr>
       </thead>
-      <tbody>
-        {% for record in sample_records[:50] %}
-        <tr>
-          <td>{{ record.get('crash_date', 'N/A') }}</td>
-          <td>{{ record.get('borough', 'N/A') }}</td>
-          <td>{{ record.get('on_street_name', 'N/A') }}</td>
-          <td>{{ record.get('number_of_persons_injured', 0) }}</td>
-          <td>{{ record.get('number_of_persons_killed', 0) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+      <tbody></tbody>
     </table>
   </div>
-  {% endif %}
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const searchInput = document.getElementById("searchInput");
+      const tableBody = document.querySelector("#recordsTable tbody");
+      const countText = document.getElementById("countText");
+      if (!searchInput || !tableBody || !countText) return;
+
+      const renderRows = (rows) => {
+        tableBody.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        rows.forEach((r) => {
+          const tr = document.createElement("tr");
+          const cells = [
+            r.crash_date || "",
+            r.borough || "",
+            r.on_street_name || "",
+            r.cross_street_name || "",
+            r.number_of_persons_injured || "0",
+            r.number_of_persons_killed || "0",
+            r.vehicle_type_code1 || "",
+            r.vehicle_type_code2 || "",
+          ];
+          cells.forEach((val) => {
+            const td = document.createElement("td");
+            td.textContent = val;
+            tr.appendChild(td);
+          });
+          frag.appendChild(tr);
+        });
+        tableBody.appendChild(frag);
+      };
+
+      const updateCount = (returned, total) => {
+        countText.textContent = `(showing ${returned.toLocaleString()} of ${total.toLocaleString()} records)`;
+      };
+
+      let debounceTimer;
+      const fetchData = (query = "") => {
+        const url = new URL(
+          window.location.origin + `/search/vehicle/{{ vehicle_type }}/data`
+        );
+        if (query) url.searchParams.set("q", query);
+        fetch(url)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.error) return;
+            renderRows(data.rows || []);
+            updateCount(data.returned || 0, data.total || 0);
+          })
+          .catch(() => {});
+      };
+
+      // Initial load
+      fetchData("");
+
+      // Debounced search
+      searchInput.addEventListener("input", function () {
+        const q = this.value.trim();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => fetchData(q), 250);
+      });
+    });
+  </script>
 
   <div style="margin-top: 2rem">
     <a href="{{ url_for('search_vehicle') }}" class="btn btn-primary"

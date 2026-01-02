@@ -187,23 +187,92 @@ def vehicle_results(vehicle_type):
         
         vehicle_cols = [col for col in loaded_data.columns if 'vehicle_type' in col.lower()]
         mask = pd.Series([False] * len(loaded_data))
-        
+
+        exclude_ebike = vehicle_type.strip().lower() in {"bike", "bicycle"}
+        ebike_pattern = r"e[- ]?bike|electric bike|e[- ]?bicycle"
+        bike_pattern = vehicle_type.upper()
+
         for col in vehicle_cols:
-            mask = mask | loaded_data[col].str.upper().str.contains(vehicle_type.upper(), na=False)
+            col_series = loaded_data[col].astype(str).str.upper()
+            match_bike = col_series.str.contains(bike_pattern, na=False)
+            if exclude_ebike:
+                not_ebike = ~col_series.str.contains(ebike_pattern, case=False, na=False)
+                match_bike = match_bike & not_ebike
+            mask = mask | match_bike
         
         filtered = loaded_data[mask]
         stats = compute_stats(filtered)
-        
-        # Get sample records
-        sample_records = filtered.head(50).to_dict('records') if hasattr(filtered, 'to_dict') else []
-        
+
         return render_template('vehicle_results.html', 
                              vehicle_type=vehicle_type,
                              stats=stats,
-                             record_count=len(filtered),
-                             sample_records=sample_records)
+                             record_count=len(filtered))
     except Exception as e:
         return render_template('error.html', message=f"Error: {e}")
+
+
+@app.route('/search/vehicle/<vehicle_type>/data')
+def vehicle_results_data(vehicle_type):
+    """Return JSON data for a vehicle type with optional client search filtering."""
+    if loaded_data is None:
+        return jsonify({"error": "No data loaded"}), 500
+
+    try:
+        import pandas as pd
+
+        vehicle_cols = [col for col in loaded_data.columns if 'vehicle_type' in col.lower()]
+        mask = pd.Series([False] * len(loaded_data))
+
+        # Normalize bike vs e-bike: exclude e-bike when searching for bike/bicycle
+        exclude_ebike = vehicle_type.strip().lower() in {"bike", "bicycle"}
+        ebike_pattern = r"e[- ]?bike|electric bike|e[- ]?bicycle"
+        bike_pattern = vehicle_type.upper()
+
+        for col in vehicle_cols:
+            col_series = loaded_data[col].astype(str).str.upper()
+            match_bike = col_series.str.contains(bike_pattern, na=False)
+            if exclude_ebike:
+                # remove ebike matches when user searches for bike
+                not_ebike = ~col_series.str.contains(ebike_pattern, case=False, na=False)
+                match_bike = match_bike & not_ebike
+            mask = mask | match_bike
+
+        filtered = loaded_data[mask].copy()
+
+        # Optional client-side search query
+        q = request.args.get('q', '').strip().lower()
+
+        # Columns to return
+        cols = [
+            'crash_date', 'borough', 'on_street_name', 'cross_street_name',
+            'number_of_persons_injured', 'number_of_persons_killed',
+            'vehicle_type_code1', 'vehicle_type_code2'
+        ]
+        existing_cols = [c for c in cols if c in filtered.columns]
+
+        # Clean NaN and select columns early for speed
+        if existing_cols:
+            filtered = filtered[existing_cols].fillna('')
+
+        # Apply query filter across row text if provided
+        if q:
+            filtered = filtered[filtered.apply(lambda row: q in ' '.join(map(str, row)).lower(), axis=1)]
+
+        total = len(filtered)
+
+        # Limit rows returned for performance
+        MAX_ROWS = 500
+        limited = filtered.head(MAX_ROWS) if hasattr(filtered, 'head') else filtered
+
+        records = limited.to_dict('records') if hasattr(limited, 'to_dict') else []
+
+        return jsonify({
+            "total": total,
+            "returned": len(records),
+            "rows": records
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/borough')
@@ -410,6 +479,40 @@ def heatmap():
 def export():
     """Export options page."""
     return render_template('export.html')
+
+
+@app.route('/browse')
+def browse_data():
+    """Browse all accident records with search."""
+    if loaded_data is None:
+        return render_template('error.html', message="No data loaded")
+    
+    try:
+        # Get all records and clean NaN values
+        if hasattr(loaded_data, 'to_dict'):
+            all_records = loaded_data.fillna('').to_dict('records')
+            # Keep only important columns and filter empty values
+            important_cols = ['crash_date', 'borough', 'on_street_name', 'cross_street_name',
+                            'number_of_persons_injured', 'number_of_persons_killed', 
+                            'vehicle_type_code1', 'vehicle_type_code2']
+            
+            cleaned_records = []
+            for record in all_records:
+                cleaned = {}
+                for col in important_cols:
+                    val = record.get(col, '')
+                    if val != '' and str(val).lower() != 'nan':
+                        cleaned[col] = val
+                if cleaned:  # Only include if has at least some data
+                    cleaned_records.append(cleaned)
+        else:
+            cleaned_records = []
+        
+        return render_template('browse_data.html', 
+                             records=cleaned_records,
+                             record_count=len(cleaned_records))
+    except Exception as e:
+        return render_template('error.html', message=f"Browse error: {e}")
 
 
 @app.route('/export/csv')
