@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}NYC Crashes Analysis{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <div class="nav-brand">
+          <a href="{{ url_for('index') }}">🚗 NYC Crashes Analysis</a>
+        </div>
+        <div class="nav-menu">
+          <a href="{{ url_for('index') }}">Home</a>
+          <a href="{{ url_for('filter_data') }}">Filter Data</a>
+          <a href="{{ url_for('brief_statistics') }}">Statistics</a>
+          <a href="{{ url_for('search_vehicle') }}">Vehicle Search</a>
+          <a href="{{ url_for('borough_list') }}">Boroughs</a>
+          <a href="{{ url_for('visualizations') }}">Visualizations</a>
+          <a href="{{ url_for('heatmap') }}">Heatmap</a>
+          <a href="{{ url_for('export') }}">Export</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="container">{% block content %}{% endblock %}</div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <p>
+          &copy; 2026 NYC Crashes Analysis | Authors: Alexander John Balagso,
+          Marc Aaron Africano
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,125 @@
+{% extends "base.html" %} {% block title %}Detailed Statistics - NYC Crashes
+Analysis{% endblock %} {% block content %}
+<div class="section">
+  <h1>Detailed Statistics</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Comprehensive crash data analysis
+  </p>
+
+  <div class="stats-cards">
+    <div class="card">
+      <div class="card-icon">🚨</div>
+      <h3>Total Accidents</h3>
+      <p class="big-number">
+        {{ "{:,}".format(stats.get('total_accidents', 0)) }}
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤕</div>
+      <h3>Persons Injured</h3>
+      <p class="big-number">
+        {{ "{:,}".format(stats.get('number_of_persons_injured', 0)) }}
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💀</div>
+      <h3>Persons Killed</h3>
+      <p class="big-number" style="color: var(--danger-color)">
+        {{ "{:,}".format(stats.get('number_of_persons_killed', 0)) }}
+      </p>
+    </div>
+  </div>
+
+  {% if stats.get('top_streets') %}
+  <div class="table-container">
+    <h2 style="padding: 1.5rem 1.5rem 0">Top 10 Streets by Accidents</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Street Name</th>
+          <th>Accident Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for street, count in stats.get('top_streets_list', [])[:10] %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ street }}</td>
+          <td>{{ "{:,}".format(count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %} {% if stats.get('top_vehicles') %}
+  <div class="table-container">
+    <h2 style="padding: 1.5rem 1.5rem 0">Top 10 Vehicle Types</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vehicle Type</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for vehicle, count in stats.get('top_vehicles_list', [])[:10] %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ vehicle }}</td>
+          <td>{{ "{:,}".format(count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %} {% if stats.get('top_months') %}
+  <div class="table-container">
+    <h2 style="padding: 1.5rem 1.5rem 0">Top 5 Months by Accidents</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Month</th>
+          <th>Accident Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for month, count in stats.get('top_months_list', [])[:5] %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ month }}</td>
+          <td>{{ "{:,}".format(count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %} {% if stats.get('borough_chart_url') %}
+  <div
+    style="
+      margin-top: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      padding: 1.5rem;
+    "
+  >
+    <h2>Accidents by Borough</h2>
+    <img
+      src="{{ stats.get('borough_chart_url') }}"
+      alt="Accidents by Borough"
+      style="width: 100%; max-width: 900px; height: auto; margin-top: 1rem"
+    />
+  </div>
+  {% endif %}
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

@@ -180,3 +180,10 @@ cython_debug/
 .cursorignore
 .cursorindexingignoredata/*.csv
 *.csv
+
+# Project-specific: Generated output and cache
+static/plots/*.png
+static/maps/*.html
+data/nyc_crashes_cached.csv
+data/nyc_crashes_meta.json
+.DS_Store

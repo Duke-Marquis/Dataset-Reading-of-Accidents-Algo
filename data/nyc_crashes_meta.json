@@ -1,7 +1,0 @@
-{
-  "cache_timestamp": "2026-01-01T21:17:35.241764",
-  "source": "api",
-  "last_updated_from_api": "2026-01-01T21:17:35.241815",
-  "url": "https://data.cityofnewyork.us/resource/h9gi-nx95.csv?%24where=crash_date+between+%272024-01-01T00%3A00%3A00%27+and+%272024-12-31T23%3A59%3A59%27&%24limit=500000",
-  "year_filter": 2024
-}

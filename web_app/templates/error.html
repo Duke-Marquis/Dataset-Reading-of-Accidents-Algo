@@ -1,0 +1,10 @@
+{% extends "base.html" %} {% block title %}Error - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="error-container">
+  <div class="error-icon">❌</div>
+  <h1>Error</h1>
+  <p>{{ message }}</p>
+  <br />
+  <a href="{{ url_for('index') }}" class="btn btn-primary">Back to Home</a>
+</div>
+{% endblock %}

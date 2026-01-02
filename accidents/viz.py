@@ -21,7 +21,7 @@ def _as_df(data: Any):
     return data
 
 
-def plot_monthly_counts(data: Any, out_png: str = "visuals/monthly_counts.png"):
+def plot_monthly_counts(data: Any, out_png: str = "static/plots/monthly_counts.png"):
     """Plot monthly counts (saves PNG)."""
     pd = None
     try:
@@ -56,7 +56,7 @@ def plot_monthly_counts(data: Any, out_png: str = "visuals/monthly_counts.png"):
     return out_png
 
 
-def plot_top_streets(data: Any, out_png: str = "visuals/top_streets.png", top_n: int = 10):
+def plot_top_streets(data: Any, out_png: str = "static/plots/top_streets.png", top_n: int = 10):
     """Plot top streets bar chart using counts from compute_stats or derived from data."""
     try:
         import matplotlib.pyplot as plt  # type: ignore
@@ -81,7 +81,7 @@ def plot_top_streets(data: Any, out_png: str = "visuals/top_streets.png", top_n:
     return out_png
 
 
-def plot_top_months(data: Any, out_png: str = "visuals/top_months.png", top_n: int = 5):
+def plot_top_months(data: Any, out_png: str = "static/plots/top_months.png", top_n: int = 5):
     """Plot top N months by accident count."""
     try:
         import matplotlib.pyplot as plt  # type: ignore
@@ -104,7 +104,7 @@ def plot_top_months(data: Any, out_png: str = "visuals/top_months.png", top_n: i
     return out_png
 
 
-def plot_top_vehicles(data: Any, out_png: str = "visuals/top_vehicles.png", top_n: int = 5):
+def plot_top_vehicles(data: Any, out_png: str = "static/plots/top_vehicles.png", top_n: int = 5):
     """Plot top N vehicle types by occurrence across all vehicle columns."""
     try:
         import matplotlib.pyplot as plt  # type: ignore
@@ -127,7 +127,35 @@ def plot_top_vehicles(data: Any, out_png: str = "visuals/top_vehicles.png", top_
     return out_png
 
 
-def generate_folium_heatmap(data: Any, out_html: str = "heatmap.html"):
+def plot_boroughs(data: Any, out_png: str = "static/plots/boroughs.png"):
+    """Plot accident counts by borough."""
+    try:
+        import matplotlib.pyplot as plt  # type: ignore
+        import pandas as pd  # type: ignore
+    except Exception as exc:
+        raise RuntimeError("matplotlib and pandas are required for plotting: install via pip") from exc
+
+    df = _as_df(data)
+    if not hasattr(df, "shape"):
+        df = pd.DataFrame(df)
+
+    if "borough" not in df.columns:
+        raise ValueError("No 'borough' column found in data")
+
+    borough_counts = df["borough"].value_counts(dropna=True).sort_values(ascending=True)
+
+    plt.figure(figsize=(10, 6))
+    borough_counts.plot(kind="barh", color="steelblue")
+    plt.title("Accidents by Borough")
+    plt.xlabel("Count")
+    plt.ylabel("Borough")
+    plt.tight_layout()
+    plt.savefig(out_png)
+    plt.close()
+    return out_png
+
+
+def generate_folium_heatmap(data: Any, out_html: str = "static/maps/heatmap.html"):
     """Generate a folium heatmap HTML file from latitude/longitude columns.
 
     Requires `folium` be installed.
@@ -175,5 +203,18 @@ def generate_folium_heatmap(data: Any, out_html: str = "heatmap.html"):
     center = [float(coords[lat_col].median()), float(coords[lon_col].median())]
     m = folium.Map(location=center, zoom_start=11)
     HeatMap(coords.values.tolist(), radius=8, blur=15).add_to(m)
+
+    # Add a simple legend for intensity
+    legend_html = """
+    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: #fff; padding: 10px 12px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.35); font-family: Helvetica, Arial, sans-serif; line-height: 1.4;">
+        <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px; color: #333;">Heatmap intensity</div>
+        <div style="width: 160px;">
+            <div style="height: 12px; border-radius: 4px; background: linear-gradient(to right, #00bcd4 0%, #7a3fc1 40%, #f44336 70%, #ffeb3b 100%); margin-bottom: 4px; border: 1px solid rgba(0,0,0,0.1);"></div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #444;"><span>Low</span><span>High</span></div>
+        </div>
+    </div>
+    """
+    m.get_root().html.add_child(folium.Element(legend_html))
+
     m.save(out_html)
     return out_html

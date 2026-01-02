@@ -1,0 +1,33 @@
+{% extends "base.html" %} {% block title %}Filter Data - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="section">
+  <h1>Filter Data by Date Range</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Set a custom date range to filter accidents
+  </p>
+
+  <div class="card" style="max-width: 600px; margin: 0 auto">
+    <form method="POST" action="{{ url_for('filter_data') }}">
+      <div class="form-group">
+        <label for="start_date">Start Date</label>
+        <input type="date" id="start_date" name="start_date" required />
+      </div>
+
+      <div class="form-group">
+        <label for="end_date">End Date</label>
+        <input type="date" id="end_date" name="end_date" required />
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-primary" style="width: 100%">
+          Apply Filter
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div style="margin-top: 2rem; text-align: center">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+  </div>
+</div>
+{% endblock %}

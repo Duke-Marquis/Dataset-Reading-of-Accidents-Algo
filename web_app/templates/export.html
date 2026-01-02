@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Export Data - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="section">
+  <h1>Export Data</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Download data in various formats
+  </p>
+
+  <div class="action-grid">
+    <a href="{{ url_for('export_csv') }}" class="action-card">
+      <div class="action-icon">📄</div>
+      <h3>Export CSV</h3>
+      <p>Download filtered data as CSV file</p>
+    </a>
+
+    <a href="{{ url_for('export_report') }}" class="action-card">
+      <div class="action-icon">📊</div>
+      <h3>Export Report</h3>
+      <p>Download detailed statistical report</p>
+    </a>
+  </div>
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

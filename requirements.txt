@@ -1,28 +1,26 @@
-pandas==2.2.2
-matplotlib==3.9.0
-folium==0.16.0
-Pillow==11.0.0
-numpy==1.26.4
-requests==2.31.0
-python-dateutil==2.8.2
-tzdata==2024.1
+pandas>=2.0.0
+matplotlib>=3.7.0
+folium>=0.15.0
+flask>=3.0.0
+requests>=2.31.0
+python-dateutil>=2.8.0
 
-# GUI requirement: tkinter (not a pip package)
-# - Tkinter is part of the Python standard library on many platforms but is provided
-#   by the operating system package on some Linux distributions.
-# - Debian/Ubuntu: sudo apt install python3-tk
-# - Fedora: sudo dnf install python3-tkinter
-# - macOS: ensure Tcl/Tk is installed (e.g. via Homebrew: brew install tcl-tk) or use the
-#   official Python installer from python.org which bundles Tcl/Tk.
-# - Windows: Tkinter is usually included with the official Python installer.
-
-# Development & testing tools (optional)
-black==24.10.0      # code formatter
-flake8==6.1.0       # linter
-isort==5.13.0       # import sorting
-pytest==8.4.3       # tests (optional)
-mypy==1.8.0         # static type checking
-
-# Notes:
-# - Install dev tools with: pip install -r requirements.txt
-# - Or use a separate dev-requirements file if you prefer to keep runtime deps minimal
+# NYC Crashes Data Analysis - Dependencies
+# 
+# Required packages:
+# - pandas: Data processing and manipulation
+# - matplotlib: Static chart/plot generation (monthly counts, top streets)
+# - folium: Interactive heatmaps and geographic visualizations
+# - flask: Web application framework (runs web_app.py on port 5001)
+# - requests: HTTP library for NYC Open Data API calls
+# - python-dateutil: Date parsing and timezone handling
+#
+# Installation:
+#   pip install -r requirements.txt
+#
+# Usage:
+#   CLI: python3 main.py
+#   Web: python3 run-web_app.py (opens http://localhost:5001)
+#
+# Note: tkinter (for Tkinter GUI in ui_tk.py) is part of Python stdlib,
+#       no pip install needed. On Debian/Ubuntu: sudo apt install python3-tk

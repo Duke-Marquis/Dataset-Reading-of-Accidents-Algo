@@ -1,0 +1,71 @@
+{% extends "base.html" %} {% block title %}{{ borough }} - NYC Crashes
+Analysis{% endblock %} {% block content %}
+<div class="section">
+  <h1>{{ borough }}</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Detailed statistics for {{ borough }}
+  </p>
+
+  <div class="stats-cards">
+    <div class="card">
+      <div class="card-icon">🚨</div>
+      <h3>Total Accidents</h3>
+      <p class="big-number">
+        {{ "{:,}".format(stats.get('total_accidents', 0)) }}
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤕</div>
+      <h3>Persons Injured</h3>
+      <p class="big-number">
+        {{ "{:,}".format(stats.get('number_of_persons_injured', 0)) }}
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💀</div>
+      <h3>Persons Killed</h3>
+      <p class="big-number" style="color: var(--danger-color)">
+        {{ "{:,}".format(stats.get('number_of_persons_killed', 0)) }}
+      </p>
+    </div>
+  </div>
+
+  {% if streets %}
+  <div class="table-container">
+    <h2 style="padding: 1.5rem 1.5rem 0">Top 10 Streets</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Street Name</th>
+          <th>Accident Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for street, count in streets %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ street }}</td>
+          <td>{{ "{:,}".format(count) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div style="margin-top: 2rem">
+    <a
+      href="{{ url_for('plot_streets', borough=borough) }}"
+      class="btn btn-primary"
+      >View Streets Chart</a
+    >
+    <a href="{{ url_for('borough_list') }}" class="btn btn-secondary"
+      >Back to Boroughs</a
+    >
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+  </div>
+</div>
+{% endblock %}

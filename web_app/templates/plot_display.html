@@ -1,0 +1,17 @@
+{% extends "base.html" %} {% block title %}{{ title }} - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="section">
+  <h1>{{ title }}</h1>
+
+  <div class="plot-container">
+    <img src="{{ image_path }}" alt="{{ title }}" />
+  </div>
+
+  <div style="margin-top: 2rem; text-align: center">
+    <a href="{{ url_for('visualizations') }}" class="btn btn-primary"
+      >Back to Visualizations</a
+    >
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+  </div>
+</div>
+{% endblock %}

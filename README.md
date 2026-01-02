@@ -2,27 +2,31 @@
 
 ## 📚 Project Overview
 
-This repository contains a small data‑science toolkit for exploring the NYC Motor Vehicle Collisions dataset. The data is pulled from the official NYC Open Data portal, cached locally, and can be visualised via a command‑line interface (`ui.py`) or a lightweight Tkinter GUI (`ui_tk.py`).
+This repository contains a small data‑science toolkit for exploring the NYC Motor Vehicle Collisions dataset. The data is pulled from the official NYC Open Data portal, cached locally, and can be used via an interactive CLI (`main.py`) or a Flask web app (`web_app/web_app.py`).
 
 The main components are:
 
-| File               | Purpose                                                              |
-| ------------------ | -------------------------------------------------------------------- |
-| `accidents/datapull.py` | Handles downloading, caching, and filtering of the CSV data.         |
+| File                    | Purpose                                                      |
+| ----------------------- | ------------------------------------------------------------ |
+| `accidents/datapull.py` | Downloading, caching, and filtering of the CSV data.         |
+| `main.py`               | Interactive CLI menu for stats, plots, heatmap, and exports. |
+| `web_app/web_app.py`    | Flask web interface (tables, charts, heatmap preview).       |
+| `web_app/templates/`    | HTML templates for the web app.                              |
+| `accidents/viz.py`      | Plotting and folium heatmap generation.                      |
+| `data/`                 | Cached CSV and metadata; created on first run.               |
+| `static/`               | Generated plots and maps (served by web app).                |
 
 ## Project layout
+
 - `accidents/` — core library (data pulling, stats, visualizations) 🔧
-- `apps/` — GUI and CLI entry points (run `python ui_tk.py` or `python ui.py`) 🖥️
+- `web_app/` — Flask web app (`web_app/web_app.py`) with templates and static assets 🖥️
+- `main.py` — interactive CLI entry point 🎛️
+- `run-web_app.py` — launcher script for the Flask web app 🚀
 - `data/` — cached CSVs and sample datasets 📂
-- `visuals/` — generated charts and images (monthly/top charts) 🖼️
-- `tkinter` (GUI) — not a pip package; usually included with Python. On Debian/Ubuntu install via `sudo apt install python3-tk`. If the GUI fails to start, ensure Tcl/Tk is available in your Python installation.
+- `static/` — generated charts and maps (plots/, maps/) 🖼️
 - `docs/` — extra docs like data caching notes 📄
 
-Charts are now written to `visuals/` by default. You can override the output path when calling the plotting functions.
-| `ui.py`            | Interactive CLI menu – statistics, plots, CSV export, etc.           |
-| `ui_tk.py`         | Tkinter GUI wrapper that simply calls the same logic as `ui.py`.     |
-| `main.py`          | Entry point for the CLI when the repository is executed as a script. |
-| `requirements.txt` | Python dependencies.                                                 |
+Charts and maps are written to `static/plots/` and `static/maps/` respectively. You can override the output path when calling the plotting functions.
 
 The dataset is cached in the `data/` folder. The first run will download the full dataset (or a date‑filtered subset) and store it as `nyc_crashes_cached.csv`.
 
@@ -62,9 +66,15 @@ matplotlib
 folium
 ```
 
-> **Note**: If you prefer to use `pipenv` or `poetry`, you can adapt the above steps accordingly.
+> =2.0.0
+> matplotlib>=3.7.0
+> folium>=0.15.0
+> flask>=3.0.0
+> requests>=2.31.0
 
----
+## python-dateutil>=2.8.0
+
+web app
 
 ## 📦 Data
 
@@ -84,58 +94,54 @@ and place it in the `data/` folder – the CLI will use it automatically.
 
 ---
 
-## 🖥️ Running the CLI (`ui.py`)
+## 🖥️ Running the CLI (`main.py`)
 
 ```bash
 # From the repository root
-python ui.py
+python3 main.py
 ```
 
 You will be presented with a menu:
 
 ```
-1) Show brief stats
+1) Show brief statistics
 2) Show detailed statistics
 3) Search accidents by vehicle type
 4) Filter by borough
 5) Plot monthly counts (PNG)
 6) Plot top streets by borough (PNG)
-7) Export report CSV
-8) Export filtered rows to CSV
-9) Generate folium heatmap (HTML)
+7) Generate folium heatmap (HTML)
+8) Export report CSV
 q) Quit
 ```
 
 **Key points**:
 
-- When you choose `nyc` as the data source, you will be prompted for an optional date range. If you skip it, the script will load the full cached dataset.
-- All PNG and HTML outputs are written to the `data/` folder by default.
+- You will be prompted for an optional date range (YYYY/MM/DD). If you skip it, the script loads the cached dataset in `data/nyc_crashes_cached.csv`.
+- PNG plots are written to `static/plots/`; the folium heatmap is written to `static/maps/heatmap.html`.
 - The CLI is intentionally lightweight – no external UI libraries are required.
 
 ---
 
-## 🎨 Running the GUI (`ui_tk.py`)
+## 🌐 Running the Web App (`web_app/web_app.py`)
 
-The Tkinter GUI is a thin wrapper around the same logic used by the CLI. It provides a simple window with buttons for each menu option.
-
-```bash
-python ui_tk.py
-```
-
-> **Tip**: The GUI requires the same dependencies as the CLI. If you followed the setup instructions above, it will work out of the box.
-
----
-
-## 📦 Packaging & Distribution
-
-If you want to distribute the project as a standalone executable, you can use `PyInstaller`:
+The Flask app surfaces the same data via tables and embeds the folium heatmap.
 
 ```bash
-pip install pyinstaller
-pyinstaller --onefile ui.py
+# From the repository root
+python3 run-web_app.py
+
+# Or directly run web_app.py from the web_app/ directory
+# cd web_app && python3 web_app.py
 ```
 
-This will create an executable in the `dist/` folder.
+Then open http://localhost:5001 in your browser.
+
+Notes:
+
+- The app automatically loads/refreshes the cached CSV in `data/` on startup.
+- Plots and the heatmap are saved to `static/plots/` and `static/maps/`; the web app renders them inline.
+- Port 5001 is used to avoid conflicts with macOS AirPlay.
 
 ---
 

@@ -1,0 +1,25 @@
+{% extends "base.html" %} {% block title %}Boroughs - NYC Crashes Analysis{%
+endblock %} {% block content %}
+<div class="section">
+  <h1>Browse by Borough</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Select a borough to view detailed statistics
+  </p>
+
+  <div class="list-grid">
+    {% for borough, count in boroughs %}
+    <a
+      href="{{ url_for('borough_detail', borough_name=borough) }}"
+      class="list-item"
+    >
+      <span class="list-item-title">🏙️ {{ borough }}</span>
+      <span class="list-item-count">{{ "{:,}".format(count) }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %} {% block title %}{{ vehicle_type }} - NYC Crashes
+Analysis{% endblock %} {% block content %}
+<div class="section">
+  <h1>Vehicle Type: {{ vehicle_type }}</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Accidents involving {{ vehicle_type }}
+  </p>
+
+  <div class="stats-cards">
+    <div class="card">
+      <div class="card-icon">🚨</div>
+      <h3>Total Accidents</h3>
+      <p class="big-number">{{ "{:,}".format(record_count) }}</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🤕</div>
+      <h3>Persons Injured</h3>
+      <p class="big-number">
+        {{ "{:,}".format(stats.get('number_of_persons_injured', 0)) }}
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💀</div>
+      <h3>Persons Killed</h3>
+      <p class="big-number" style="color: var(--danger-color)">
+        {{ "{:,}".format(stats.get('number_of_persons_killed', 0)) }}
+      </p>
+    </div>
+  </div>
+
+  {% if sample_records %}
+  <div class="table-container">
+    <h2 style="padding: 1.5rem 1.5rem 0">Sample Records (First 50)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Borough</th>
+          <th>Street</th>
+          <th>Injured</th>
+          <th>Killed</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in sample_records[:50] %}
+        <tr>
+          <td>{{ record.get('crash_date', 'N/A') }}</td>
+          <td>{{ record.get('borough', 'N/A') }}</td>
+          <td>{{ record.get('on_street_name', 'N/A') }}</td>
+          <td>{{ record.get('number_of_persons_injured', 0) }}</td>
+          <td>{{ record.get('number_of_persons_killed', 0) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('search_vehicle') }}" class="btn btn-primary"
+      >Back to Vehicle Search</a
+    >
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Home</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %} {% block title %}Vehicle Search - NYC Crashes
+Analysis{% endblock %} {% block content %}
+<div class="section">
+  <h1>Search by Vehicle Type</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Click on a vehicle type to view related accidents
+  </p>
+
+  <div class="list-grid">
+    {% for vehicle, count in vehicles.items() %}
+    <a
+      href="{{ url_for('vehicle_results', vehicle_type=vehicle) }}"
+      class="list-item"
+    >
+      <span class="list-item-title">🚗 {{ vehicle }}</span>
+      <span class="list-item-count">{{ "{:,}".format(count) }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Visualizations - NYC Crashes
+Analysis{% endblock %} {% block content %}
+<div class="section">
+  <h1>Visualizations</h1>
+  <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem">
+    Charts and graphs for data analysis
+  </p>
+
+  <div class="action-grid">
+    <a href="{{ url_for('plot_monthly') }}" class="action-card">
+      <div class="action-icon">📊</div>
+      <h3>Monthly Trends</h3>
+      <p>View accident counts by month</p>
+    </a>
+
+    <a href="{{ url_for('borough_list') }}" class="action-card">
+      <div class="action-icon">📈</div>
+      <h3>Top Streets by Borough</h3>
+      <p>Select a borough to view top streets chart</p>
+    </a>
+  </div>
+
+  <div style="margin-top: 2rem">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+  </div>
+</div>
+{% endblock %}
