@@ -1,4 +1,4 @@
-# Authors: Alexander John Balagso, Marc Aaron Africano
+# Authors: Marc Aaron Africano, Alexander John Balagso
 
 """Simple data-pull utilities for the accidents CSV.
 

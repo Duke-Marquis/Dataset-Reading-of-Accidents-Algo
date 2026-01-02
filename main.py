@@ -1,4 +1,4 @@
-# Authors: Alexander John Balagso, Marc Aaron Africano
+# Authors: Marc Aaron Africano, Alexander John Balagso
 
 """Interactive CLI for analyzing NYC crashes data.
 

@@ -1,4 +1,4 @@
-# Authors: Alexander John Balagso, Marc Aaron Africano
+# Authors: Marc Aaron Africano, Alexander John Balagso
 
 """Flask web application for NYC crashes data analysis.
 
@@ -35,8 +35,8 @@ from accidents.datapull import (
 from accidents import viz as _viz
 from accidents import crashes_dictionaries as cd
 
-# Configure Flask to use static folder from project root
-app = Flask(__name__, static_folder='../static', static_url_path='/static')
+# Configure Flask to use the shared project-level static folder
+app = Flask(__name__, static_folder=str(project_root / 'static'), static_url_path='/static')
 app.config['SECRET_KEY'] = 'nyc-crashes-analysis-2026'
 
 # Global variable to hold loaded data

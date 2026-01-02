@@ -1,4 +1,4 @@
-# Authors: Alexander John Balagso, Marc Aaron Africano
+# Authors: Marc Aaron Africano, Alexander John Balagso
 
 """Utilities to handle crash CSV field names and CSV row helpers."""
 

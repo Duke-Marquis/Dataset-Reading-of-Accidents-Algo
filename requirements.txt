@@ -4,23 +4,3 @@ folium>=0.15.0
 flask>=3.0.0
 requests>=2.31.0
 python-dateutil>=2.8.0
-
-# NYC Crashes Data Analysis - Dependencies
-# 
-# Required packages:
-# - pandas: Data processing and manipulation
-# - matplotlib: Static chart/plot generation (monthly counts, top streets)
-# - folium: Interactive heatmaps and geographic visualizations
-# - flask: Web application framework (runs web_app.py on port 5001)
-# - requests: HTTP library for NYC Open Data API calls
-# - python-dateutil: Date parsing and timezone handling
-#
-# Installation:
-#   pip install -r requirements.txt
-#
-# Usage:
-#   CLI: python3 main.py
-#   Web: python3 run-web_app.py (opens http://localhost:5001)
-#
-# Note: tkinter (for Tkinter GUI in ui_tk.py) is part of Python stdlib,
-#       no pip install needed. On Debian/Ubuntu: sudo apt install python3-tk
